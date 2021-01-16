@@ -21,6 +21,15 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const IDesktop& desktop);
 
+class Win32Desktop : public IDesktop {
+public:
+    Win32Desktop();
+    [[nodiscard]] std::vector<DesktopIcon> getIcons() const override;
+
+private:
+    std::vector<DesktopIcon> mIcons;
+};
+
 }
 
 #endif //ICONWRANGLER_DESKTOP_H
