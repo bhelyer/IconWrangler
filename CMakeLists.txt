@@ -12,3 +12,4 @@ add_executable(IconWrangler
 )
 target_compile_options(IconWrangler PRIVATE ${IW_CXX_FLAGS})
 target_link_libraries(IconWrangler PRIVATE GTest::gtest)
+set_target_properties(IconWrangler PROPERTIES OUTPUT_NAME iw)
