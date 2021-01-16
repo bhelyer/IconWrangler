@@ -29,6 +29,7 @@ public:
     Win32Desktop();
     [[nodiscard]] std::vector<DesktopIcon> getIcons() const override;
     void setIcons(const std::vector<DesktopIcon>& icons) override;
+    void arrangeIcons();
 
 private:
     std::vector<DesktopIcon> mIcons;

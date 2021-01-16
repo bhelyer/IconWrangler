@@ -1,5 +1,8 @@
 #include "Desktop.h"
 
+#include <cassert>
+#include <algorithm>
+
 #include <ShlObj.h>
 #include <ExDisp.h>
 #include <Shlwapi.h>
@@ -85,6 +88,56 @@ IconWrangler::Win32Desktop::Win32Desktop() {
         icon.x = pt.x;
         icon.y = pt.y;
         mIcons.push_back(icon);
+    }
+}
+
+void IconWrangler::Win32Desktop::arrangeIcons() {
+    CComPtr<IFolderView> spView;
+    FindDesktopFolderView(IID_PPV_ARGS(&spView));
+    CComPtr<IShellFolder> spFolder;
+    spView->GetFolder(IID_PPV_ARGS(&spFolder));
+
+    std::vector<LPCITEMIDLIST> items;
+    std::vector<POINT> points;
+
+    CComPtr<IEnumIDList> spEnum;
+    spView->Items(SVGIO_ALLVIEW, IID_PPV_ARGS(&spEnum));
+    for (CComHeapPtr<ITEMID_CHILD> spIdl; spEnum->Next(1, &spIdl, nullptr) == S_OK;) {
+        STRRET str;
+        spFolder->GetDisplayNameOf(spIdl, SHGDN_NORMAL, &str);
+        CComHeapPtr<char> spszName;
+        StrRetToStrA(&str, spIdl, &spszName);
+        const std::string name = (char*)spszName;
+
+        auto it = std::find_if(mIcons.begin(), mIcons.end(), [&](const auto& icon) {
+            return name == icon.name;
+        });
+        if (it == mIcons.end()) {
+            spIdl.Free();
+            continue;
+        }
+
+        POINT point;
+        point.x = it->x;
+        point.y = it->y;
+
+        items.push_back(spIdl);
+        points.push_back(point);
+        spIdl.Detach();
+    }
+
+    assert(items.size() == points.size() && "items and points are not the same size");
+    const auto cidl = static_cast<UINT>(items.size());
+    spView->SelectAndPositionItems(cidl, items.data(), points.data(), 0);
+
+    for (auto item : items) {
+        /* If the rest of this garbage hasn't convinced you that I have
+         * no clue with what I'm doing with regards to COM, this has to
+         * do the trick.
+         */
+        CComHeapPtr<ITEMID_CHILD> spIdl;
+        spIdl.Attach((_ITEMIDLIST*)(item));
+        spIdl.Free();
     }
 }
 

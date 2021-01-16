@@ -45,7 +45,13 @@ int main(int argc, char** argv) {
             return 1;
         }
     } else {
-        // TODO: Load.
+        std::ifstream ifs{"icons.txt"};
+        if (!ifs) {
+            std::cerr << "Couldn't open 'icons.txt' for reading.\n";
+            return 1;
+        }
+        ifs >> desktop;
+        desktop.arrangeIcons();
     }
 
     return 0;
